@@ -68,7 +68,8 @@ if __name__ == '__main__':
     time.sleep(next_interval)
 
     while True:
-        current_utc_time = datetime.now(timezone.utc)
+        start_time = datetime.now(timezone.utc)
+        current_utc_time = start_time
         current_date = current_utc_time.date()
         current_time_seconds = time_to_seconds(current_utc_time.time())
 
@@ -80,14 +81,16 @@ if __name__ == '__main__':
 
         for idx in range(closest_idx, len(df)):
             row = df.iloc[idx]
-
             row_messages = row_to_dict_list(row, current_date)
+
+            expected_time = start_time + timedelta(seconds=(idx - closest_idx) * 15)
+            print(expected_time)
             send(row_messages, producer=azure_producer)
 
-            start_time = datetime.now(timezone.utc)
-            elapsed_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            sleep_time = max(0, 15 - (elapsed_time % 15))
-            time.sleep(sleep_time)
+            sleep_time = (expected_time - datetime.now(timezone.utc)).total_seconds()
+            print(sleep_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
         print("Restarting dataset loop...")
         df = pd.read_csv('motors_generic_dataset.csv', parse_dates=['timestamp'])
