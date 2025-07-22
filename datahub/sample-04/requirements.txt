@@ -1,4 +1,3 @@
-wizata_dsapi==1.0.47
-streamlit==1.41.1
 pandas==1.5.3
-pytz==2024.2
+azure-eventhub==5.11.2
+numpy==1.26.4
