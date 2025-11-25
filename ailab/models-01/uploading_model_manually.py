@@ -1,5 +1,5 @@
 import json
-
+import pickle
 import wizata_dsapi
 import pickle
 from sklearn.linear_model import LinearRegression
@@ -17,6 +17,38 @@ def train_model():
     my_model = LinearRegression()
     my_model.fit(x, y)
     return my_model
+
+def save_locally_pickle(my_model):
+    with open('model.pkl', 'wb') as f:
+        pickle.dump(my_model, f)
+
+def upload_model_from_pickle():
+    with open("model.pkl", "rb") as f:
+        my_model = pickle.load(f)
+
+    model_info = wizata_dsapi.api().upload_model(
+        model_info=wizata_dsapi.ModelInfo(
+            key="models-01-sample-docs-pickle",
+            twin_hardware_id="mef_plant_a",
+            trained_model=my_model,
+        )
+    )
+    print(model_info.identifier(include_alias=True))
+    return model_info.identifier(include_alias=True)
+
+def upload_model_from_pickle_as_bytes():
+    with open("model.pkl", "rb") as f:
+        my_model_bytes = f.read()
+
+    model_info = wizata_dsapi.api().upload_model(
+        model_info=wizata_dsapi.ModelInfo(
+            key="models-01-sample-docs-pickle",
+            twin_hardware_id="mef_plant_a",
+        ),
+        bytes_content=my_model_bytes
+    )
+    print(model_info.identifier(include_alias=True))
+    return model_info.identifier(include_alias=True)
 
 def upload_model(my_model):
     model_info = wizata_dsapi.api().upload_model(
@@ -60,6 +92,9 @@ def download_model_and_extra_files(identifier):
 if __name__ == "__main__":
 
     model = train_model()
+    save_locally_pickle(model)
+    upload_model_from_pickle()
+    upload_model_from_pickle_as_bytes()
     model_identifier = upload_model(model)
     upload_extra_files(model_identifier)
 
